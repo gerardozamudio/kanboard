@@ -3,7 +3,7 @@
 namespace Kanboard\Analytic;
 
 use Kanboard\Core\Base;
-use Kanboard\Model\Task;
+use Kanboard\Model\TaskModel;
 
 /**
  * Average Lead and Cycle Time
@@ -85,26 +85,28 @@ class AverageLeadCycleTimeAnalytic extends Base
      */
     private function calculateCycleTime(array &$task)
     {
-        if (empty($task['date_started'])) {
-            return 0;
+        $end = (int) $task['date_completed'] ?: time();
+        $start = (int) $task['date_started'];
+
+        // Start date can be in the future when defined with the Gantt chart
+        if ($start > 0 && $end > $start) {
+            return $end - $start;
         }
 
-        $end = $task['date_completed'] ?: time();
-        $start = $task['date_started'];
-
-        return $end - $start;
+        return 0;
     }
 
     /**
      * Get the 1000 last created tasks
      *
      * @access private
+     * @param  integer $project_id
      * @return array
      */
     private function getTasks($project_id)
     {
         return $this->db
-            ->table(Task::TABLE)
+            ->table(TaskModel::TABLE)
             ->columns('date_completed', 'date_creation', 'date_started')
             ->eq('project_id', $project_id)
             ->desc('id')

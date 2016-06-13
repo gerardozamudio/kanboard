@@ -3,11 +3,11 @@
     <?= $this->hook->render('template:auth:login-form:before') ?>
 
     <?php if (isset($errors['login'])): ?>
-        <p class="alert alert-error"><?= $this->e($errors['login']) ?></p>
+        <p class="alert alert-error"><?= $this->text->e($errors['login']) ?></p>
     <?php endif ?>
 
     <?php if (! HIDE_LOGIN_FORM): ?>
-    <form method="post" action="<?= $this->url->href('auth', 'check') ?>">
+    <form method="post" action="<?= $this->url->href('AuthController', 'check') ?>">
 
         <?= $this->form->csrf() ?>
 
@@ -19,7 +19,7 @@
 
         <?php if (isset($captcha) && $captcha): ?>
             <?= $this->form->label(t('Enter the text below'), 'captcha') ?>
-            <img src="<?= $this->url->href('Captcha', 'image') ?>"/>
+            <img src="<?= $this->url->href('CaptchaController', 'image') ?>" alt="Captcha">
             <?= $this->form->text('captcha', array(), $errors, array('required')) ?>
         <?php endif ?>
 
@@ -28,11 +28,11 @@
         <?php endif ?>
 
         <div class="form-actions">
-            <input type="submit" value="<?= t('Sign in') ?>" class="btn btn-blue"/>
+            <button type="submit" class="btn btn-blue"><?= t('Sign in') ?></button>
         </div>
         <?php if ($this->app->config('password_reset') == 1): ?>
             <div class="reset-password">
-                <?= $this->url->link(t('Forgot password?'), 'PasswordReset', 'create') ?>
+                <?= $this->url->link(t('Forgot password?'), 'PasswordResetController', 'create') ?>
             </div>
         <?php endif ?>
     </form>

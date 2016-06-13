@@ -2,6 +2,7 @@
 
 namespace Kanboard\Core\Mail;
 
+use Kanboard\Job\EmailJob;
 use Pimple\Container;
 use Kanboard\Core\Base;
 
@@ -41,28 +42,34 @@ class Client extends Base
      * @param  string  $name
      * @param  string  $subject
      * @param  string  $html
-     * @return EmailClient
+     * @return Client
      */
     public function send($email, $name, $subject, $html)
     {
         if (! empty($email)) {
-            $this->logger->debug('Sending email to '.$email.' ('.MAIL_TRANSPORT.')');
-
-            $start_time = microtime(true);
-            $author = 'Kanboard';
-
-            if ($this->userSession->isLogged()) {
-                $author = e('%s via Kanboard', $this->helper->user->getFullname());
-            }
-
-            $this->getTransport(MAIL_TRANSPORT)->sendEmail($email, $name, $subject, $html, $author);
-
-            if (DEBUG) {
-                $this->logger->debug('Email sent in '.round(microtime(true) - $start_time, 6).' seconds');
-            }
+            $this->queueManager->push(EmailJob::getInstance($this->container)
+                ->withParams($email, $name, $subject, $html, $this->getAuthor())
+            );
         }
 
         return $this;
+    }
+
+    /**
+     * Get email author
+     *
+     * @access public
+     * @return string
+     */
+    public function getAuthor()
+    {
+        $author = 'Kanboard';
+
+        if ($this->userSession->isLogged()) {
+            $author = e('%s via Kanboard', $this->helper->user->getFullname());
+        }
+
+        return $author;
     }
 
     /**
@@ -70,7 +77,7 @@ class Client extends Base
      *
      * @access public
      * @param  string  $transport
-     * @return EmailClientInterface
+     * @return ClientInterface
      */
     public function getTransport($transport)
     {
@@ -83,7 +90,7 @@ class Client extends Base
      * @access public
      * @param  string  $transport
      * @param  string  $class
-     * @return EmailClient
+     * @return Client
      */
     public function setTransport($transport, $class)
     {
@@ -94,5 +101,17 @@ class Client extends Base
         };
 
         return $this;
+    }
+
+    /**
+     * Return the list of registered transports
+     *
+     * @access public
+     * @return array
+     */
+    public function getAvailableTransports()
+    {
+        $availableTransports = $this->transports->keys();
+        return array_combine($availableTransports, $availableTransports);
     }
 }

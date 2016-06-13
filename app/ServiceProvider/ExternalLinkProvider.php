@@ -7,11 +7,12 @@ use Pimple\ServiceProviderInterface;
 use Kanboard\Core\ExternalLink\ExternalLinkManager;
 use Kanboard\ExternalLink\WebLinkProvider;
 use Kanboard\ExternalLink\AttachmentLinkProvider;
+use Kanboard\ExternalLink\FileLinkProvider;
 
 /**
  * External Link Provider
  *
- * @package serviceProvider
+ * @package Kanboard\ServiceProvider
  * @author  Frederic Guillot
  */
 class ExternalLinkProvider implements ServiceProviderInterface
@@ -28,6 +29,7 @@ class ExternalLinkProvider implements ServiceProviderInterface
         $container['externalLinkManager'] = new ExternalLinkManager($container);
         $container['externalLinkManager']->register(new WebLinkProvider($container));
         $container['externalLinkManager']->register(new AttachmentLinkProvider($container));
+        $container['externalLinkManager']->register(new FileLinkProvider($container));
 
         return $container;
     }

@@ -2,25 +2,30 @@
 
 require_once __DIR__.'/../Base.php';
 
-use Kanboard\Helper\User;
-use Kanboard\Model\Project;
-use Kanboard\Model\ProjectUserRole;
-use Kanboard\Model\User as UserModel;
+use Kanboard\Core\User\UserSession;
+use Kanboard\Helper\UserHelper;
+use Kanboard\Model\ProjectModel;
+use Kanboard\Model\ProjectUserRoleModel;
+use Kanboard\Model\TaskCreationModel;
+use Kanboard\Model\TaskFinderModel;
 use Kanboard\Core\Security\Role;
+use Kanboard\Model\UserModel;
 
 class UserHelperTest extends Base
 {
     public function testInitials()
     {
-        $helper = new User($this->container);
+        $helper = new UserHelper($this->container);
 
         $this->assertEquals('CN', $helper->getInitials('chuck norris'));
+        $this->assertEquals('CN', $helper->getInitials('chuck norris #2'));
         $this->assertEquals('A', $helper->getInitials('admin'));
+        $this->assertEquals('Ü君', $helper->getInitials('Ü 君が代'));
     }
 
     public function testGetRoleName()
     {
-        $helper = new User($this->container);
+        $helper = new UserHelper($this->container);
         $this->assertEquals('Administrator', $helper->getRoleName(Role::APP_ADMIN));
         $this->assertEquals('Manager', $helper->getRoleName(Role::APP_MANAGER));
         $this->assertEquals('Project Viewer', $helper->getRoleName(Role::PROJECT_VIEWER));
@@ -28,50 +33,50 @@ class UserHelperTest extends Base
 
     public function testHasAccessForAdmins()
     {
-        $helper = new User($this->container);
+        $helper = new UserHelper($this->container);
 
         $this->container['sessionStorage']->user = array(
             'id' => 2,
             'role' => Role::APP_ADMIN,
         );
 
-        $this->assertTrue($helper->hasAccess('user', 'create'));
-        $this->assertTrue($helper->hasAccess('ProjectCreation', 'create'));
-        $this->assertTrue($helper->hasAccess('ProjectCreation', 'createPrivate'));
+        $this->assertTrue($helper->hasAccess('UserCreationController', 'create'));
+        $this->assertTrue($helper->hasAccess('ProjectCreationController', 'create'));
+        $this->assertTrue($helper->hasAccess('ProjectCreationController', 'createPrivate'));
     }
 
     public function testHasAccessForManagers()
     {
-        $helper = new User($this->container);
+        $helper = new UserHelper($this->container);
 
         $this->container['sessionStorage']->user = array(
             'id' => 2,
             'role' => Role::APP_MANAGER,
         );
 
-        $this->assertFalse($helper->hasAccess('user', 'create'));
-        $this->assertTrue($helper->hasAccess('ProjectCreation', 'create'));
-        $this->assertTrue($helper->hasAccess('ProjectCreation', 'createPrivate'));
+        $this->assertFalse($helper->hasAccess('UserCreationController', 'show'));
+        $this->assertTrue($helper->hasAccess('ProjectCreationController', 'create'));
+        $this->assertTrue($helper->hasAccess('ProjectCreationController', 'createPrivate'));
     }
 
     public function testHasAccessForUsers()
     {
-        $helper = new User($this->container);
+        $helper = new UserHelper($this->container);
 
         $this->container['sessionStorage']->user = array(
             'id' => 2,
             'role' => Role::APP_USER,
         );
 
-        $this->assertFalse($helper->hasAccess('user', 'create'));
-        $this->assertFalse($helper->hasAccess('ProjectCreation', 'create'));
-        $this->assertTrue($helper->hasAccess('ProjectCreation', 'createPrivate'));
+        $this->assertFalse($helper->hasAccess('UserCreationController', 'show'));
+        $this->assertFalse($helper->hasAccess('ProjectCreationController', 'create'));
+        $this->assertTrue($helper->hasAccess('ProjectCreationController', 'createPrivate'));
     }
 
     public function testHasProjectAccessForAdmins()
     {
-        $helper = new User($this->container);
-        $project = new Project($this->container);
+        $helper = new UserHelper($this->container);
+        $project = new ProjectModel($this->container);
 
         $this->container['sessionStorage']->user = array(
             'id' => 2,
@@ -80,14 +85,14 @@ class UserHelperTest extends Base
 
         $this->assertEquals(1, $project->create(array('name' => 'My project')));
 
-        $this->assertTrue($helper->hasProjectAccess('ProjectEdit', 'edit', 1));
-        $this->assertTrue($helper->hasProjectAccess('board', 'show', 1));
+        $this->assertTrue($helper->hasProjectAccess('ProjectEditController', 'edit', 1));
+        $this->assertTrue($helper->hasProjectAccess('BoardViewController', 'show', 1));
     }
 
     public function testHasProjectAccessForManagers()
     {
-        $helper = new User($this->container);
-        $project = new Project($this->container);
+        $helper = new UserHelper($this->container);
+        $project = new ProjectModel($this->container);
 
         $this->container['sessionStorage']->user = array(
             'id' => 2,
@@ -96,14 +101,14 @@ class UserHelperTest extends Base
 
         $this->assertEquals(1, $project->create(array('name' => 'My project')));
 
-        $this->assertFalse($helper->hasProjectAccess('ProjectEdit', 'edit', 1));
-        $this->assertFalse($helper->hasProjectAccess('board', 'show', 1));
+        $this->assertFalse($helper->hasProjectAccess('ProjectEditController', 'edit', 1));
+        $this->assertFalse($helper->hasProjectAccess('BoardViewController', 'show', 1));
     }
 
     public function testHasProjectAccessForUsers()
     {
-        $helper = new User($this->container);
-        $project = new Project($this->container);
+        $helper = new UserHelper($this->container);
+        $project = new ProjectModel($this->container);
 
         $this->container['sessionStorage']->user = array(
             'id' => 2,
@@ -112,16 +117,16 @@ class UserHelperTest extends Base
 
         $this->assertEquals(1, $project->create(array('name' => 'My project')));
 
-        $this->assertFalse($helper->hasProjectAccess('ProjectEdit', 'edit', 1));
-        $this->assertFalse($helper->hasProjectAccess('board', 'show', 1));
+        $this->assertFalse($helper->hasProjectAccess('ProjectEditController', 'edit', 1));
+        $this->assertFalse($helper->hasProjectAccess('BoardViewController', 'show', 1));
     }
 
     public function testHasProjectAccessForAppManagerAndProjectManagers()
     {
-        $helper = new User($this->container);
+        $helper = new UserHelper($this->container);
         $user = new UserModel($this->container);
-        $project = new Project($this->container);
-        $projectUserRole = new ProjectUserRole($this->container);
+        $project = new ProjectModel($this->container);
+        $projectUserRole = new ProjectUserRoleModel($this->container);
 
         $this->container['sessionStorage']->user = array(
             'id' => 2,
@@ -133,23 +138,23 @@ class UserHelperTest extends Base
         $this->assertEquals(2, $user->create(array('username' => 'user')));
         $this->assertTrue($projectUserRole->addUser(1, 2, Role::PROJECT_MANAGER));
 
-        $this->assertTrue($helper->hasProjectAccess('ProjectEdit', 'edit', 1));
-        $this->assertTrue($helper->hasProjectAccess('board', 'show', 1));
-        $this->assertTrue($helper->hasProjectAccess('task', 'show', 1));
-        $this->assertTrue($helper->hasProjectAccess('taskcreation', 'save', 1));
+        $this->assertTrue($helper->hasProjectAccess('ProjectEditController', 'edit', 1));
+        $this->assertTrue($helper->hasProjectAccess('BoardViewController', 'show', 1));
+        $this->assertTrue($helper->hasProjectAccess('TaskViewController', 'show', 1));
+        $this->assertTrue($helper->hasProjectAccess('taskcreationcontroller', 'save', 1));
 
-        $this->assertFalse($helper->hasProjectAccess('ProjectEdit', 'edit', 2));
-        $this->assertFalse($helper->hasProjectAccess('board', 'show', 2));
-        $this->assertFalse($helper->hasProjectAccess('task', 'show', 2));
-        $this->assertFalse($helper->hasProjectAccess('taskcreation', 'save', 2));
+        $this->assertFalse($helper->hasProjectAccess('ProjectEditController', 'edit', 2));
+        $this->assertFalse($helper->hasProjectAccess('BoardViewController', 'show', 2));
+        $this->assertFalse($helper->hasProjectAccess('TaskViewController', 'show', 2));
+        $this->assertFalse($helper->hasProjectAccess('TaskCreationController', 'save', 2));
     }
 
     public function testHasProjectAccessForProjectManagers()
     {
-        $helper = new User($this->container);
+        $helper = new UserHelper($this->container);
         $user = new UserModel($this->container);
-        $project = new Project($this->container);
-        $projectUserRole = new ProjectUserRole($this->container);
+        $project = new ProjectModel($this->container);
+        $projectUserRole = new ProjectUserRoleModel($this->container);
 
         $this->container['sessionStorage']->user = array(
             'id' => 2,
@@ -161,23 +166,23 @@ class UserHelperTest extends Base
         $this->assertEquals(2, $user->create(array('username' => 'user')));
         $this->assertTrue($projectUserRole->addUser(1, 2, Role::PROJECT_MANAGER));
 
-        $this->assertTrue($helper->hasProjectAccess('ProjectEdit', 'edit', 1));
-        $this->assertTrue($helper->hasProjectAccess('board', 'show', 1));
-        $this->assertTrue($helper->hasProjectAccess('task', 'show', 1));
-        $this->assertTrue($helper->hasProjectAccess('taskcreation', 'save', 1));
+        $this->assertTrue($helper->hasProjectAccess('ProjectEditController', 'edit', 1));
+        $this->assertTrue($helper->hasProjectAccess('BoardViewController', 'show', 1));
+        $this->assertTrue($helper->hasProjectAccess('TaskViewController', 'show', 1));
+        $this->assertTrue($helper->hasProjectAccess('TaskCreationController', 'save', 1));
 
-        $this->assertFalse($helper->hasProjectAccess('ProjectEdit', 'edit', 2));
-        $this->assertFalse($helper->hasProjectAccess('board', 'show', 2));
-        $this->assertFalse($helper->hasProjectAccess('task', 'show', 2));
-        $this->assertFalse($helper->hasProjectAccess('taskcreation', 'save', 2));
+        $this->assertFalse($helper->hasProjectAccess('ProjectEditController', 'edit', 2));
+        $this->assertFalse($helper->hasProjectAccess('BoardViewController', 'show', 2));
+        $this->assertFalse($helper->hasProjectAccess('TaskViewController', 'show', 2));
+        $this->assertFalse($helper->hasProjectAccess('TaskCreationController', 'save', 2));
     }
 
     public function testHasProjectAccessForProjectMembers()
     {
-        $helper = new User($this->container);
+        $helper = new UserHelper($this->container);
         $user = new UserModel($this->container);
-        $project = new Project($this->container);
-        $projectUserRole = new ProjectUserRole($this->container);
+        $project = new ProjectModel($this->container);
+        $projectUserRole = new ProjectUserRoleModel($this->container);
 
         $this->container['sessionStorage']->user = array(
             'id' => 2,
@@ -189,23 +194,23 @@ class UserHelperTest extends Base
         $this->assertEquals(2, $user->create(array('username' => 'user')));
         $this->assertTrue($projectUserRole->addUser(1, 2, Role::PROJECT_MEMBER));
 
-        $this->assertFalse($helper->hasProjectAccess('ProjectEdit', 'edit', 1));
-        $this->assertTrue($helper->hasProjectAccess('board', 'show', 1));
-        $this->assertTrue($helper->hasProjectAccess('task', 'show', 1));
-        $this->assertTrue($helper->hasProjectAccess('taskcreation', 'save', 1));
+        $this->assertFalse($helper->hasProjectAccess('ProjectEditController', 'edit', 1));
+        $this->assertTrue($helper->hasProjectAccess('BoardViewController', 'show', 1));
+        $this->assertTrue($helper->hasProjectAccess('TaskViewController', 'show', 1));
+        $this->assertTrue($helper->hasProjectAccess('TaskCreationController', 'save', 1));
 
-        $this->assertFalse($helper->hasProjectAccess('ProjectEdit', 'edit', 2));
-        $this->assertFalse($helper->hasProjectAccess('board', 'show', 2));
-        $this->assertFalse($helper->hasProjectAccess('task', 'show', 2));
-        $this->assertFalse($helper->hasProjectAccess('taskcreation', 'save', 2));
+        $this->assertFalse($helper->hasProjectAccess('ProjectEditController', 'edit', 2));
+        $this->assertFalse($helper->hasProjectAccess('BoardViewController', 'show', 2));
+        $this->assertFalse($helper->hasProjectAccess('TaskViewController', 'show', 2));
+        $this->assertFalse($helper->hasProjectAccess('TaskCreationController', 'save', 2));
     }
 
     public function testHasProjectAccessForProjectViewers()
     {
-        $helper = new User($this->container);
+        $helper = new UserHelper($this->container);
         $user = new UserModel($this->container);
-        $project = new Project($this->container);
-        $projectUserRole = new ProjectUserRole($this->container);
+        $project = new ProjectModel($this->container);
+        $projectUserRole = new ProjectUserRoleModel($this->container);
 
         $this->container['sessionStorage']->user = array(
             'id' => 2,
@@ -217,14 +222,104 @@ class UserHelperTest extends Base
         $this->assertEquals(2, $user->create(array('username' => 'user')));
         $this->assertTrue($projectUserRole->addUser(1, 2, Role::PROJECT_VIEWER));
 
-        $this->assertFalse($helper->hasProjectAccess('ProjectEdit', 'edit', 1));
-        $this->assertTrue($helper->hasProjectAccess('board', 'show', 1));
-        $this->assertTrue($helper->hasProjectAccess('task', 'show', 1));
-        $this->assertFalse($helper->hasProjectAccess('taskcreation', 'save', 1));
+        $this->assertFalse($helper->hasProjectAccess('ProjectEditController', 'edit', 1));
+        $this->assertTrue($helper->hasProjectAccess('BoardViewController', 'show', 1));
+        $this->assertTrue($helper->hasProjectAccess('TaskViewController', 'show', 1));
+        $this->assertFalse($helper->hasProjectAccess('TaskCreationController', 'save', 1));
 
-        $this->assertFalse($helper->hasProjectAccess('ProjectEdit', 'edit', 2));
-        $this->assertFalse($helper->hasProjectAccess('board', 'show', 2));
-        $this->assertFalse($helper->hasProjectAccess('task', 'show', 2));
-        $this->assertFalse($helper->hasProjectAccess('taskcreation', 'save', 2));
+        $this->assertFalse($helper->hasProjectAccess('ProjectEditController', 'edit', 2));
+        $this->assertFalse($helper->hasProjectAccess('BoardViewController', 'show', 2));
+        $this->assertFalse($helper->hasProjectAccess('TaskViewController', 'show', 2));
+        $this->assertFalse($helper->hasProjectAccess('TaskCreationController', 'save', 2));
+    }
+
+    public function testCanRemoveTask()
+    {
+        $taskCreationModel = new TaskCreationModel($this->container);
+        $taskFinderModel = new TaskFinderModel($this->container);
+        $helper = new UserHelper($this->container);
+        $projectModel = new ProjectModel($this->container);
+        $userModel = new UserModel($this->container);
+        $userSessionModel = new UserSession($this->container);
+
+        $this->assertNotFalse($userModel->create(array('username' => 'toto', 'password' => '123456')));
+        $this->assertNotFalse($userModel->create(array('username' => 'toto2', 'password' => '123456')));
+        $this->assertEquals(1, $projectModel->create(array('name' => 'Project #1')));
+        $this->assertEquals(1, $taskCreationModel->create(array('title' => 'TaskViewController #1', 'project_id' => 1, 'creator_id' => 1)));
+        $this->assertEquals(2, $taskCreationModel->create(array('title' => 'TaskViewController #2', 'project_id' => 1, 'creator_id' => 2)));
+        $this->assertEquals(3, $taskCreationModel->create(array('title' => 'TaskViewController #3', 'project_id' => 1, 'creator_id' => 3)));
+        $this->assertEquals(4, $taskCreationModel->create(array('title' => 'TaskViewController #4', 'project_id' => 1)));
+
+        // User #1 can remove everything
+        $user = $userModel->getById(1);
+        $this->assertNotEmpty($user);
+        $userSessionModel->initialize($user);
+
+        $task = $taskFinderModel->getById(1);
+        $this->assertNotEmpty($task);
+        $this->assertTrue($helper->canRemoveTask($task));
+
+        // User #2 can't remove the TaskViewController #1
+        $user = $userModel->getById(2);
+        $this->assertNotEmpty($user);
+        $userSessionModel->initialize($user);
+
+        $task = $taskFinderModel->getById(1);
+        $this->assertNotEmpty($task);
+        $this->assertFalse($helper->canRemoveTask($task));
+
+        // User #1 can remove everything
+        $user = $userModel->getById(1);
+        $this->assertNotEmpty($user);
+        $userSessionModel->initialize($user);
+
+        $task = $taskFinderModel->getById(2);
+        $this->assertNotEmpty($task);
+        $this->assertTrue($helper->canRemoveTask($task));
+
+        // User #2 can remove his own TaskViewController
+        $user = $userModel->getById(2);
+        $this->assertNotEmpty($user);
+        $userSessionModel->initialize($user);
+
+        $task = $taskFinderModel->getById(2);
+        $this->assertNotEmpty($task);
+        $this->assertTrue($helper->canRemoveTask($task));
+
+        // User #1 can remove everything
+        $user = $userModel->getById(1);
+        $this->assertNotEmpty($user);
+        $userSessionModel->initialize($user);
+
+        $task = $taskFinderModel->getById(3);
+        $this->assertNotEmpty($task);
+        $this->assertTrue($helper->canRemoveTask($task));
+
+        // User #2 can't remove the TaskViewController #3
+        $user = $userModel->getById(2);
+        $this->assertNotEmpty($user);
+        $userSessionModel->initialize($user);
+
+        $task = $taskFinderModel->getById(3);
+        $this->assertNotEmpty($task);
+        $this->assertFalse($helper->canRemoveTask($task));
+
+        // User #1 can remove everything
+        $user = $userModel->getById(1);
+        $this->assertNotEmpty($user);
+        $userSessionModel->initialize($user);
+
+        $task = $taskFinderModel->getById(4);
+        $this->assertNotEmpty($task);
+        $this->assertTrue($helper->canRemoveTask($task));
+
+        // User #2 can't remove the TaskViewController #4
+        $user = $userModel->getById(2);
+        $this->assertNotEmpty($user);
+        $userSessionModel->initialize($user);
+
+        $task = $taskFinderModel->getById(4);
+        $this->assertNotEmpty($task);
+        $this->assertFalse($helper->canRemoveTask($task));
     }
 }

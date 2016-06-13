@@ -1,7 +1,7 @@
 <?php if (! empty($subtasks)): ?>
     <table
         class="subtasks-table table-stripped"
-        data-save-position-url="<?= $this->url->href('Subtask', 'movePosition', array('project_id' => $task['project_id'], 'task_id' => $task['id'])) ?>"
+        data-save-position-url="<?= $this->url->href('SubtaskController', 'movePosition', array('project_id' => $task['project_id'], 'task_id' => $task['id'])) ?>"
     >
     <thead>
         <tr>
@@ -26,29 +26,29 @@
             </td>
             <td>
                 <?php if (! empty($subtask['username'])): ?>
-                    <?= $this->e($subtask['name'] ?: $subtask['username']) ?>
+                    <?= $this->text->e($subtask['name'] ?: $subtask['username']) ?>
                 <?php endif ?>
             </td>
             <td>
                 <ul class="no-bullet">
                     <li>
                         <?php if (! empty($subtask['time_spent'])): ?>
-                            <strong><?= $this->e($subtask['time_spent']).'h' ?></strong> <?= t('spent') ?>
+                            <strong><?= $this->text->e($subtask['time_spent']).'h' ?></strong> <?= t('spent') ?>
                         <?php endif ?>
 
                         <?php if (! empty($subtask['time_estimated'])): ?>
-                            <strong><?= $this->e($subtask['time_estimated']).'h' ?></strong> <?= t('estimated') ?>
+                            <strong><?= $this->text->e($subtask['time_estimated']).'h' ?></strong> <?= t('estimated') ?>
                         <?php endif ?>
                     </li>
                     <?php if ($editable && $subtask['user_id'] == $this->user->getId()): ?>
                     <li>
                         <?php if ($subtask['is_timer_started']): ?>
                             <i class="fa fa-pause"></i>
-                            <?= $this->url->link(t('Stop timer'), 'SubtaskStatus', 'timer', array('timer' => 'stop', 'project_id' => $task['project_id'], 'task_id' => $subtask['task_id'], 'subtask_id' => $subtask['id']), false, 'subtask-toggle-timer') ?>
+                            <?= $this->url->link(t('Stop timer'), 'SubtaskStatusController', 'timer', array('timer' => 'stop', 'project_id' => $task['project_id'], 'task_id' => $subtask['task_id'], 'subtask_id' => $subtask['id']), false, 'subtask-toggle-timer') ?>
                             (<?= $this->dt->age($subtask['timer_start_date']) ?>)
                         <?php else: ?>
                             <i class="fa fa-play-circle-o"></i>
-                            <?= $this->url->link(t('Start timer'), 'SubtaskStatus', 'timer', array('timer' => 'start', 'project_id' => $task['project_id'], 'task_id' => $subtask['task_id'], 'subtask_id' => $subtask['id']), false, 'subtask-toggle-timer') ?>
+                            <?= $this->url->link(t('Start timer'), 'SubtaskStatusController', 'timer', array('timer' => 'start', 'project_id' => $task['project_id'], 'task_id' => $subtask['task_id'], 'subtask_id' => $subtask['id']), false, 'subtask-toggle-timer') ?>
                         <?php endif ?>
                     </li>
                     <?php endif ?>
@@ -66,6 +66,4 @@
         <?php endforeach ?>
     </tbody>
     </table>
-<?php else: ?>
-    <p class="alert"><?= t('There is no subtask at the moment.') ?></p>
 <?php endif ?>

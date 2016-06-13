@@ -95,23 +95,6 @@ CREATE TABLE `custom_filters` (
   CONSTRAINT `custom_filters_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
-DROP TABLE IF EXISTS `files`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `files` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL,
-  `path` varchar(255) DEFAULT NULL,
-  `is_image` tinyint(1) DEFAULT '0',
-  `task_id` int(11) NOT NULL,
-  `date` bigint(20) DEFAULT NULL,
-  `user_id` int(11) NOT NULL DEFAULT '0',
-  `size` int(11) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`),
-  KEY `files_task_idx` (`task_id`),
-  CONSTRAINT `files_ibfk_1` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `group_has_users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -253,6 +236,23 @@ CREATE TABLE `project_has_categories` (
   CONSTRAINT `project_has_categories_ibfk_1` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `project_has_files`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `project_has_files` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `project_id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `path` varchar(255) NOT NULL,
+  `is_image` tinyint(1) DEFAULT '0',
+  `size` int(11) NOT NULL DEFAULT '0',
+  `user_id` int(11) NOT NULL DEFAULT '0',
+  `date` int(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `project_id` (`project_id`),
+  CONSTRAINT `project_has_files_ibfk_1` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `project_has_groups`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -273,6 +273,8 @@ CREATE TABLE `project_has_metadata` (
   `project_id` int(11) NOT NULL,
   `name` varchar(50) NOT NULL,
   `value` varchar(255) DEFAULT '',
+  `changed_by` int(11) NOT NULL DEFAULT '0',
+  `changed_on` int(11) NOT NULL DEFAULT '0',
   UNIQUE KEY `project_id` (`project_id`,`name`),
   CONSTRAINT `project_has_metadata_ibfk_1` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -357,6 +359,8 @@ DROP TABLE IF EXISTS `settings`;
 CREATE TABLE `settings` (
   `option` varchar(100) NOT NULL,
   `value` varchar(255) DEFAULT '',
+  `changed_by` int(11) NOT NULL DEFAULT '0',
+  `changed_on` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`option`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -428,6 +432,23 @@ CREATE TABLE `task_has_external_links` (
   CONSTRAINT `task_has_external_links_ibfk_1` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `task_has_files`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `task_has_files` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `path` varchar(255) DEFAULT NULL,
+  `is_image` tinyint(1) DEFAULT '0',
+  `task_id` int(11) NOT NULL,
+  `date` bigint(20) DEFAULT NULL,
+  `user_id` int(11) NOT NULL DEFAULT '0',
+  `size` int(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `files_task_idx` (`task_id`),
+  CONSTRAINT `task_has_files_ibfk_1` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `task_has_links`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -452,6 +473,8 @@ CREATE TABLE `task_has_metadata` (
   `task_id` int(11) NOT NULL,
   `name` varchar(50) NOT NULL,
   `value` varchar(255) DEFAULT '',
+  `changed_by` int(11) NOT NULL DEFAULT '0',
+  `changed_on` int(11) NOT NULL DEFAULT '0',
   UNIQUE KEY `task_id` (`task_id`,`name`),
   CONSTRAINT `task_has_metadata_ibfk_1` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -531,6 +554,8 @@ CREATE TABLE `user_has_metadata` (
   `user_id` int(11) NOT NULL,
   `name` varchar(50) NOT NULL,
   `value` varchar(255) DEFAULT '',
+  `changed_by` int(11) NOT NULL DEFAULT '0',
+  `changed_on` int(11) NOT NULL DEFAULT '0',
   UNIQUE KEY `user_id` (`user_id`,`name`),
   CONSTRAINT `user_has_metadata_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -553,8 +578,8 @@ DROP TABLE IF EXISTS `user_has_notifications`;
 CREATE TABLE `user_has_notifications` (
   `user_id` int(11) NOT NULL,
   `project_id` int(11) NOT NULL,
-  UNIQUE KEY `project_id` (`project_id`,`user_id`),
-  KEY `user_id` (`user_id`),
+  UNIQUE KEY `user_has_notifications_unique_idx` (`user_id`,`project_id`),
+  KEY `user_has_notifications_ibfk_2` (`project_id`),
   CONSTRAINT `user_has_notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `user_has_notifications_ibfk_2` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -597,6 +622,8 @@ CREATE TABLE `users` (
   `lock_expiration_date` bigint(20) DEFAULT NULL,
   `gitlab_id` int(11) DEFAULT NULL,
   `role` varchar(25) NOT NULL DEFAULT 'app-user',
+  `is_active` tinyint(1) DEFAULT '1',
+  `avatar_path` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `users_username_idx` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -620,7 +647,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `settings` WRITE;
 /*!40000 ALTER TABLE `settings` DISABLE KEYS */;
-INSERT INTO `settings` VALUES ('api_token','dcae89653bfd780f56a5c2ffabc54174bcdd877940e97eaa5d800b35df0c'),('application_currency','USD'),('application_date_format','m/d/Y'),('application_language','en_US'),('application_stylesheet',''),('application_timezone','UTC'),('application_url',''),('board_columns',''),('board_highlight_period','172800'),('board_private_refresh_interval','10'),('board_public_refresh_interval','60'),('calendar_project_tasks','date_started'),('calendar_user_subtasks_time_tracking','0'),('calendar_user_tasks','date_started'),('cfd_include_closed_tasks','1'),('default_color','yellow'),('integration_gravatar','0'),('password_reset','1'),('project_categories',''),('subtask_restriction','0'),('subtask_time_tracking','1'),('webhook_token','6c0a16d06e31add3ca1ca8713a69c6b410f72c80fd49cdfe27c4a62eef13'),('webhook_url','');
+INSERT INTO `settings` VALUES ('api_token','e8a7a983f25efa80e203d44a832c9570a5083d3fefa91366989c00e931d0',0,0),('application_currency','USD',0,0),('application_date_format','m/d/Y',0,0),('application_language','en_US',0,0),('application_stylesheet','',0,0),('application_timezone','UTC',0,0),('application_url','',0,0),('board_columns','',0,0),('board_highlight_period','172800',0,0),('board_private_refresh_interval','10',0,0),('board_public_refresh_interval','60',0,0),('calendar_project_tasks','date_started',0,0),('calendar_user_subtasks_time_tracking','0',0,0),('calendar_user_tasks','date_started',0,0),('cfd_include_closed_tasks','1',0,0),('default_color','yellow',0,0),('integration_gravatar','0',0,0),('password_reset','1',0,0),('project_categories','',0,0),('subtask_restriction','0',0,0),('subtask_time_tracking','1',0,0),('webhook_token','296892f9c821909a92df539b028fdb384e47c9f7a34a8f9cad598e0edbba',0,0),('webhook_url','',0,0);
 /*!40000 ALTER TABLE `settings` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -649,4 +676,4 @@ UNLOCK TABLES;
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
-INSERT INTO users (username, password, role) VALUES ('admin', '$2y$10$f6brAPgJ6iTtOWUMJANDuuRG.VWDH61.aCb5v3MJnSrZodhDaCcmy', 'app-admin');INSERT INTO schema_version VALUES ('104');
+INSERT INTO users (username, password, role) VALUES ('admin', '$2y$10$kliMGeKgDYtx9Igek9jGDu0eZM.KXivgzvqtnMuWMkjvZiIc.8p8S', 'app-admin');INSERT INTO schema_version VALUES ('110');

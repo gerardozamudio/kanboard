@@ -1,88 +1,78 @@
-function Search(app) {
+Kanboard.Search = function(app) {
     this.app = app;
-    this.keyboardShortcuts();
-}
+};
 
-Search.prototype.focus = function() {
+Kanboard.Search.prototype.focus = function() {
+
     // Place cursor at the end when focusing on the search box
     $(document).on("focus", "#form-search", function() {
-        if ($("#form-search")[0].setSelectionRange) {
-           $('#form-search')[0].setSelectionRange($('#form-search').val().length, $('#form-search').val().length);
+        var input = $("#form-search");
+
+        if (input[0].setSelectionRange) {
+            var len = input.val().length * 2;
+            input[0].setSelectionRange(len, len);
         }
     });
 };
 
-Search.prototype.listen = function() {
-    var self = this;
-
-    // Filter helper for search
+Kanboard.Search.prototype.listen = function() {
     $(document).on("click", ".filter-helper", function (e) {
         e.preventDefault();
 
         var filter = $(this).data("filter");
         var appendFilter = $(this).data("append-filter");
+        var uniqueFilter = $(this).data("unique-filter");
+        var input = $("#form-search");
 
-        if (appendFilter) {
-            filter = $("#form-search").val() + " " + appendFilter;
+        if (uniqueFilter) {
+            var attribute = uniqueFilter.substr(0, uniqueFilter.indexOf(':'));
+            filter = input.val().replace(new RegExp('(' + attribute + ':[#a-z0-9]+)', 'g'), '');
+            filter = filter.replace(new RegExp('(' + attribute + ':"(.+)")', 'g'), '');
+            filter = filter.trim();
+            filter += ' ' + uniqueFilter;
+        } else if (appendFilter) {
+            filter = input.val() + " " + appendFilter;
         }
 
-        $("#form-search").val(filter);
-
-        if ($('#board').length) {
-            self.app.board.reloadFilters(filter);
-        }
-        else {
-            $("form.search").submit();
-        }
+        input.val(filter);
+        $("form.search").submit();
     });
 };
 
-Search.prototype.keyboardShortcuts = function() {
+Kanboard.Search.prototype.goToView = function(label) {
+    var link = $(label);
+
+    if (link.length) {
+        window.location = link.attr('href');
+    }
+};
+
+Kanboard.Search.prototype.keyboardShortcuts = function() {
     var self = this;
 
     // Switch view mode for projects: go to the overview page
-    Mousetrap.bind("v o", function(e) {
-        var link = $(".view-overview");
-
-        if (link.length) {
-            window.location = link.attr('href');
-        }
+    Mousetrap.bind("v o", function() {
+        self.goToView(".view-overview");
     });
 
     // Switch view mode for projects: go to the board
-    Mousetrap.bind("v b", function(e) {
-        var link = $(".view-board");
-
-        if (link.length) {
-            window.location = link.attr('href');
-        }
+    Mousetrap.bind("v b", function() {
+        self.goToView(".view-board");
     });
 
     // Switch view mode for projects: go to the calendar
-    Mousetrap.bind("v c", function(e) {
-        var link = $(".view-calendar");
-
-        if (link.length) {
-            window.location = link.attr('href');
-        }
+    Mousetrap.bind("v c", function() {
+        self.goToView(".view-calendar");
     });
 
     // Switch view mode for projects: go to the listing
-    Mousetrap.bind("v l", function(e) {
-        var link = $(".view-listing");
-
-        if (link.length) {
-            window.location = link.attr('href');
-        }
+    Mousetrap.bind("v l", function() {
+        self.goToView(".view-listing");
     });
 
     // Switch view mode for projects: go to the gantt chart
-    Mousetrap.bind("v g", function(e) {
-        var link = $(".view-gantt");
-
-        if (link.length) {
-            window.location = link.attr('href');
-        }
+    Mousetrap.bind("v g", function() {
+        self.goToView(".view-gantt");
     });
 
     // Focus to the search field
@@ -99,14 +89,9 @@ Search.prototype.keyboardShortcuts = function() {
     Mousetrap.bind("r", function(e) {
         e.preventDefault();
         var reset = $(".filter-reset").data("filter");
+        var input = $("#form-search");
 
-        $("#form-search").val(reset);
-
-        if ($('#board').length) {
-            self.app.board.reloadFilters(reset);
-        }
-        else {
-            $("form.search").submit();
-        }
+        input.val(reset);
+        $("form.search").submit();
     });
 };

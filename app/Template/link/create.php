@@ -2,7 +2,7 @@
     <h2><?= t('Add a new link') ?></h2>
 </div>
 
-<form action="<?= $this->url->href('link', 'save') ?>" method="post" autocomplete="off">
+<form action="<?= $this->url->href('LinkController', 'save') ?>" method="post" autocomplete="off">
 
     <?= $this->form->csrf() ?>
 
@@ -13,6 +13,6 @@
     <?= $this->form->text('opposite_label', $values, $errors) ?>
 
     <div class="form-actions">
-        <input type="submit" value="<?= t('Save') ?>" class="btn btn-blue"/>
+        <button type="submit" class="btn btn-blue"><?= t('Save') ?></button>
     </div>
 </form>

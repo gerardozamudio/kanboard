@@ -8,13 +8,13 @@
             </a>
         <?php endif ?>
 
-        <?= $this->e($swimlane['name']) ?>
+        <?= $this->text->e($swimlane['name']) ?>
 
         <?php if (! $not_editable && ! empty($swimlane['description'])): ?>
             <span
                 title="<?= t('Description') ?>"
                 class="tooltip"
-                data-href="<?= $this->url->href('BoardTooltip', 'swimlane', array('swimlane_id' => $swimlane['id'], 'project_id' => $project['id'])) ?>">
+                data-href="<?= $this->url->href('BoardTooltipController', 'swimlane', array('swimlane_id' => $swimlane['id'], 'project_id' => $project['id'])) ?>">
                 <i class="fa fa-info-circle"></i>
             </span>
         <?php endif ?>

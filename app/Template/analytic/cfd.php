@@ -12,7 +12,7 @@
 
 <hr/>
 
-<form method="post" class="form-inline" action="<?= $this->url->href('analytic', 'cfd', array('project_id' => $project['id'])) ?>" autocomplete="off">
+<form method="post" class="form-inline" action="<?= $this->url->href('AnalyticController', 'cfd', array('project_id' => $project['id'])) ?>" autocomplete="off">
 
     <?= $this->form->csrf() ?>
 
@@ -27,6 +27,6 @@
     </div>
 
     <div class="form-inline-group">
-        <input type="submit" value="<?= t('Execute') ?>" class="btn btn-blue"/>
+        <button type="submit" class="btn btn-blue"><?= t('Execute') ?></button>
     </div>
 </form>

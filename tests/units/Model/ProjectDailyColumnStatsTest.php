@@ -2,30 +2,29 @@
 
 require_once __DIR__.'/../Base.php';
 
-use Kanboard\Model\Project;
-use Kanboard\Model\ProjectDailyColumnStats;
-use Kanboard\Model\Config;
-use Kanboard\Model\Task;
-use Kanboard\Model\TaskCreation;
-use Kanboard\Model\TaskStatus;
+use Kanboard\Model\ProjectModel;
+use Kanboard\Model\ProjectDailyColumnStatsModel;
+use Kanboard\Model\ConfigModel;
+use Kanboard\Model\TaskModel;
+use Kanboard\Model\TaskCreationModel;
 
 class ProjectDailyColumnStatsTest extends Base
 {
     public function testUpdateTotalsWithScoreAtNull()
     {
-        $projectModel = new Project($this->container);
-        $projectDailyColumnStats = new ProjectDailyColumnStats($this->container);
-        $taskCreationModel = new TaskCreation($this->container);
+        $projectModel = new ProjectModel($this->container);
+        $projectDailyColumnStats = new ProjectDailyColumnStatsModel($this->container);
+        $taskCreationModel = new TaskCreationModel($this->container);
 
         $this->assertEquals(1, $projectModel->create(array('name' => 'UnitTest')));
         $this->assertEquals(1, $taskCreationModel->create(array('project_id' => 1, 'title' => 'test')));
 
         $projectDailyColumnStats->updateTotals(1, '2016-01-16');
 
-        $task = $this->container['db']->table(Task::TABLE)->findOne();
+        $task = $this->container['db']->table(TaskModel::TABLE)->findOne();
         $this->assertNull($task['score']);
 
-        $stats = $this->container['db']->table(ProjectDailyColumnStats::TABLE)
+        $stats = $this->container['db']->table(ProjectDailyColumnStatsModel::TABLE)
             ->asc('day')
             ->asc('column_id')
             ->columns('day', 'project_id', 'column_id', 'total', 'score')
@@ -46,8 +45,8 @@ class ProjectDailyColumnStatsTest extends Base
 
     public function testUpdateTotals()
     {
-        $projectModel = new Project($this->container);
-        $projectDailyColumnStats = new ProjectDailyColumnStats($this->container);
+        $projectModel = new ProjectModel($this->container);
+        $projectDailyColumnStats = new ProjectDailyColumnStatsModel($this->container);
         $this->assertEquals(1, $projectModel->create(array('name' => 'UnitTest')));
 
         $this->createTasks(1, 2, 1);
@@ -69,7 +68,7 @@ class ProjectDailyColumnStatsTest extends Base
 
         $projectDailyColumnStats->updateTotals(1, '2016-01-17');
 
-        $stats = $this->container['db']->table(ProjectDailyColumnStats::TABLE)
+        $stats = $this->container['db']->table(ProjectDailyColumnStatsModel::TABLE)
             ->asc('day')
             ->asc('column_id')
             ->columns('day', 'project_id', 'column_id', 'total', 'score')
@@ -118,9 +117,9 @@ class ProjectDailyColumnStatsTest extends Base
 
     public function testUpdateTotalsWithOnlyOpenTasks()
     {
-        $configModel = new Config($this->container);
-        $projectModel = new Project($this->container);
-        $projectDailyColumnStats = new ProjectDailyColumnStats($this->container);
+        $configModel = new ConfigModel($this->container);
+        $projectModel = new ProjectModel($this->container);
+        $projectDailyColumnStats = new ProjectDailyColumnStatsModel($this->container);
 
         $this->assertEquals(1, $projectModel->create(array('name' => 'UnitTest')));
         $this->assertTrue($configModel->save(array('cfd_include_closed_tasks' => 0)));
@@ -145,7 +144,7 @@ class ProjectDailyColumnStatsTest extends Base
 
         $projectDailyColumnStats->updateTotals(1, '2016-01-17');
 
-        $stats = $this->container['db']->table(ProjectDailyColumnStats::TABLE)
+        $stats = $this->container['db']->table(ProjectDailyColumnStatsModel::TABLE)
             ->asc('day')
             ->asc('column_id')
             ->columns('day', 'project_id', 'column_id', 'total', 'score')
@@ -194,8 +193,8 @@ class ProjectDailyColumnStatsTest extends Base
 
     public function testCountDays()
     {
-        $projectModel = new Project($this->container);
-        $projectDailyColumnStats = new ProjectDailyColumnStats($this->container);
+        $projectModel = new ProjectModel($this->container);
+        $projectDailyColumnStats = new ProjectDailyColumnStatsModel($this->container);
 
         $this->assertEquals(1, $projectModel->create(array('name' => 'UnitTest')));
 
@@ -209,8 +208,8 @@ class ProjectDailyColumnStatsTest extends Base
 
     public function testGetAggregatedMetrics()
     {
-        $projectModel = new Project($this->container);
-        $projectDailyColumnStats = new ProjectDailyColumnStats($this->container);
+        $projectModel = new ProjectModel($this->container);
+        $projectDailyColumnStats = new ProjectDailyColumnStatsModel($this->container);
         $this->assertEquals(1, $projectModel->create(array('name' => 'UnitTest')));
 
         $this->createTasks(1, 2, 1);
@@ -245,7 +244,7 @@ class ProjectDailyColumnStatsTest extends Base
             array('2016-01-18', 4, 5, 3, 0),
         );
 
-        $this->assertEquals($expected, $projectDailyColumnStats->getAggregatedMetrics(1, '2016-01-16', '2016-01-18'));
+        $this->assertSame($expected, $projectDailyColumnStats->getAggregatedMetrics(1, '2016-01-16', '2016-01-18'));
 
         $expected = array(
             array('Date', 'Backlog', 'Ready', 'Work in progress', 'Done'),
@@ -254,12 +253,12 @@ class ProjectDailyColumnStatsTest extends Base
             array('2016-01-18', 11, 14, 1, 0),
         );
 
-        $this->assertEquals($expected, $projectDailyColumnStats->getAggregatedMetrics(1, '2016-01-16', '2016-01-18', 'score'));
+        $this->assertSame($expected, $projectDailyColumnStats->getAggregatedMetrics(1, '2016-01-16', '2016-01-18', 'score'));
     }
 
     private function createTasks($column_id, $score, $is_active)
     {
-        $taskCreationModel = new TaskCreation($this->container);
+        $taskCreationModel = new TaskCreationModel($this->container);
         $this->assertNotFalse($taskCreationModel->create(array('project_id' => 1, 'title' => 'test', 'column_id' => $column_id, 'score' => $score, 'is_active' => $is_active)));
     }
 }

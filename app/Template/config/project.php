@@ -1,7 +1,7 @@
 <div class="page-header">
     <h2><?= t('Project settings') ?></h2>
 </div>
-<form method="post" action="<?= $this->url->href('config', 'project') ?>" autocomplete="off">
+<form method="post" action="<?= $this->url->href('ConfigController', 'save', array('redirect' => 'project')) ?>" autocomplete="off">
 
     <?= $this->form->csrf() ?>
 
@@ -22,6 +22,6 @@
     <?= $this->form->checkbox('cfd_include_closed_tasks', t('Include closed tasks in the cumulative flow diagram'), 1, $values['cfd_include_closed_tasks'] == 1) ?>
 
     <div class="form-actions">
-        <input type="submit" value="<?= t('Save') ?>" class="btn btn-blue">
+        <button type="submit" class="btn btn-blue"><?= t('Save') ?></button>
     </div>
 </form>

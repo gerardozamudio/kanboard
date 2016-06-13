@@ -1,5 +1,8 @@
 <section id="task-summary">
-    <h2><?= $this->e($task['title']) ?></h2>
+    <h2><?= $this->text->e($task['title']) ?></h2>
+
+    <?= $this->hook->render('template:task:details:top', array('task' => $task)) ?>
+
     <div class="task-summary-container color-<?= $task['color_id'] ?>">
         <div class="task-summary-column">
             <ul class="no-bullet">
@@ -18,20 +21,29 @@
                 </li>
                 <?php if (! empty($task['reference'])): ?>
                     <li>
-                        <strong><?= t('Reference:') ?></strong> <span><?= $this->e($task['reference']) ?></span>
+                        <strong><?= t('Reference:') ?></strong> <span><?= $this->text->e($task['reference']) ?></span>
                     </li>
                 <?php endif ?>
                 <?php if (! empty($task['score'])): ?>
                     <li>
-                        <strong><?= t('Complexity:') ?></strong> <span><?= $this->e($task['score']) ?></span>
+                        <strong><?= t('Complexity:') ?></strong> <span><?= $this->text->e($task['score']) ?></span>
                     </li>
                 <?php endif ?>
                 <?php if ($project['is_public']): ?>
                 <li class="smaller">
                     <i class="fa fa-external-link fa-fw"></i>
-                    <?= $this->url->link(t('Public link'), 'task', 'readonly', array('task_id' => $task['id'], 'token' => $project['token']), false, '', '', true) ?>
+                    <?= $this->url->link(t('Public link'), 'TaskViewController', 'readonly', array('task_id' => $task['id'], 'token' => $project['token']), false, '', '', true) ?>
                 </li>
                 <?php endif ?>
+                <?php if ($project['is_public'] && !$editable): ?>
+                <li class="smaller">
+                    <i class="fa fa-th fa-fw"></i>
+                    <?= $this->url->link(t('Back to the board'), 'BoardViewController', 'readonly', array('token' => $project['token'])) ?>
+                </li>
+                <?php endif ?>
+                <li class="smaller">
+
+                <?= $this->hook->render('template:task:details:first-column', array('task' => $task)) ?>
             </ul>
         </div>
         <div class="task-summary-column">
@@ -39,23 +51,25 @@
                 <?php if (! empty($task['category_name'])): ?>
                     <li>
                         <strong><?= t('Category:') ?></strong>
-                        <span><?= $this->e($task['category_name']) ?></span>
+                        <span><?= $this->text->e($task['category_name']) ?></span>
                     </li>
                 <?php endif ?>
                 <?php if (! empty($task['swimlane_name'])): ?>
                     <li>
                         <strong><?= t('Swimlane:') ?></strong>
-                        <span><?= $this->e($task['swimlane_name']) ?></span>
+                        <span><?= $this->text->e($task['swimlane_name']) ?></span>
                     </li>
                 <?php endif ?>
                 <li>
                     <strong><?= t('Column:') ?></strong>
-                    <span><?= $this->e($task['column_title']) ?></span>
+                    <span><?= $this->text->e($task['column_title']) ?></span>
                 </li>
                 <li>
                     <strong><?= t('Position:') ?></strong>
                     <span><?= $task['position'] ?></span>
                 </li>
+
+                <?= $this->hook->render('template:task:details:second-column', array('task' => $task)) ?>
             </ul>
         </div>
         <div class="task-summary-column">
@@ -64,7 +78,7 @@
                     <strong><?= t('Assignee:') ?></strong>
                     <span>
                     <?php if ($task['assignee_username']): ?>
-                        <?= $this->e($task['assignee_name'] ?: $task['assignee_username']) ?>
+                        <?= $this->text->e($task['assignee_name'] ?: $task['assignee_username']) ?>
                     <?php else: ?>
                         <?= t('not assigned') ?>
                     <?php endif ?>
@@ -73,7 +87,7 @@
                 <?php if ($task['creator_username']): ?>
                     <li>
                         <strong><?= t('Creator:') ?></strong>
-                        <span><?= $this->e($task['creator_name'] ?: $task['creator_username']) ?></span>
+                        <span><?= $this->text->e($task['creator_name'] ?: $task['creator_username']) ?></span>
                     </li>
                 <?php endif ?>
                 <?php if ($task['date_due']): ?>
@@ -94,6 +108,8 @@
                     <span><?= t('%s hours', $task['time_spent']) ?></span>
                 </li>
                 <?php endif ?>
+
+                <?= $this->hook->render('template:task:details:third-column', array('task' => $task)) ?>
             </ul>
         </div>
         <div class="task-summary-column">
@@ -124,7 +140,17 @@
                     <span><?= $this->dt->datetime($task['date_moved']) ?></span>
                 </li>
                 <?php endif ?>
+
+                <?= $this->hook->render('template:task:details:fourth-column', array('task' => $task)) ?>
             </ul>
         </div>
     </div>
+
+    <?php if ($editable && empty($task['date_started'])): ?>
+        <div class="task-summary-buttons">
+            <?= $this->url->button('fa-play', t('Set start date'), 'TaskModificationController', 'start', array('task_id' => $task['id'], 'project_id' => $task['project_id'])) ?>
+        </div>
+    <?php endif ?>
+
+    <?= $this->hook->render('template:task:details:bottom', array('task' => $task)) ?>
 </section>

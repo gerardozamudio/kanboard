@@ -1,6 +1,6 @@
 <div class="form-login">
     <h2><?= t('Password Reset') ?></h2>
-    <form method="post" action="<?= $this->url->href('PasswordReset', 'update', array('token' => $token)) ?>">
+    <form method="post" action="<?= $this->url->href('PasswordResetController', 'update', array('token' => $token)) ?>">
         <?= $this->form->csrf() ?>
 
         <?= $this->form->label(t('New password'), 'password') ?>
@@ -10,7 +10,7 @@
         <?= $this->form->password('confirmation', $values, $errors) ?>
 
         <div class="form-actions">
-            <input type="submit" value="<?= t('Change Password') ?>" class="btn btn-blue">
+            <button type="submit" class="btn btn-blue"><?= t('Change Password') ?></button>
         </div>
     </form>
 </div>

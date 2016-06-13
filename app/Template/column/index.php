@@ -3,17 +3,17 @@
     <ul>
         <li>
             <i class="fa fa-plus fa-fw"></i>
-            <?= $this->url->link(t('Add a new column'), 'Column', 'create', array('project_id' => $project['id']), false, 'popover') ?>
+            <?= $this->url->link(t('Add a new column'), 'ColumnController', 'create', array('project_id' => $project['id']), false, 'popover') ?>
         </li>
     </ul>
 </div>
 
 <?php if (empty($columns)): ?>
-    <p class="alert alert-error"><?= t('Your board doesn\'t have any column!') ?></p>
+    <p class="alert alert-error"><?= t('Your board doesn\'t have any columns!') ?></p>
 <?php else: ?>
     <table
         class="columns-table table-stripped"
-        data-save-position-url="<?= $this->url->href('Column', 'move', array('project_id' => $project['id'])) ?>">
+        data-save-position-url="<?= $this->url->href('ColumnController', 'move', array('project_id' => $project['id'])) ?>">
         <thead>
         <tr>
             <th class="column-70"><?= t('Column title') ?></th>
@@ -26,25 +26,25 @@
         <tr data-column-id="<?= $column['id'] ?>">
             <td>
                 <i class="fa fa-arrows-alt draggable-row-handle" title="<?= t('Change column position') ?>"></i>
-                <?= $this->e($column['title']) ?>
+                <?= $this->text->e($column['title']) ?>
                 <?php if (! empty($column['description'])): ?>
-                    <span class="tooltip" title='<?= $this->e($this->text->markdown($column['description'])) ?>'>
+                    <span class="tooltip" title="<?= $this->text->markdownAttribute($column['description']) ?>">
                         <i class="fa fa-info-circle"></i>
                     </span>
                 <?php endif ?>
             </td>
             <td>
-                <?= $this->e($column['task_limit']) ?>
+                <?= $this->text->e($column['task_limit']) ?>
             </td>
             <td>
                 <div class="dropdown">
                 <a href="#" class="dropdown-menu dropdown-menu-link-icon"><i class="fa fa-cog fa-fw"></i><i class="fa fa-caret-down"></i></a>
                 <ul>
                     <li>
-                        <?= $this->url->link(t('Edit'), 'column', 'edit', array('project_id' => $project['id'], 'column_id' => $column['id']), false, 'popover') ?>
+                        <?= $this->url->link(t('Edit'), 'ColumnController', 'edit', array('project_id' => $project['id'], 'column_id' => $column['id']), false, 'popover') ?>
                     </li>
                     <li>
-                        <?= $this->url->link(t('Remove'), 'column', 'confirm', array('project_id' => $project['id'], 'column_id' => $column['id']), false, 'popover') ?>
+                        <?= $this->url->link(t('Remove'), 'ColumnController', 'confirm', array('project_id' => $project['id'], 'column_id' => $column['id']), false, 'popover') ?>
                     </li>
                 </ul>
                 </div>

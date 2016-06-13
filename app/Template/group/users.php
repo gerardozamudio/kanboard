@@ -1,8 +1,8 @@
 <section id="main">
     <div class="page-header">
         <ul>
-            <li><i class="fa fa-users fa-fw"></i><?= $this->url->link(t('View all groups'), 'group', 'index') ?></li>
-            <li><i class="fa fa-plus fa-fw"></i><?= $this->url->link(t('Add group member'), 'group', 'associate', array('group_id' => $group['id'])) ?></li>
+            <li><i class="fa fa-users fa-fw"></i><?= $this->url->link(t('View all groups'), 'GroupListController', 'index') ?></li>
+            <li><i class="fa fa-plus fa-fw"></i><?= $this->url->link(t('Add group member'), 'GroupListController', 'associate', array('group_id' => $group['id']), false, 'popover') ?></li>
         </ul>
     </div>
     <?php if ($paginator->isEmpty()): ?>
@@ -19,19 +19,20 @@
             <?php foreach ($paginator->getCollection() as $user): ?>
             <tr>
                 <td>
-                    <?= $this->url->link('#'.$user['id'], 'user', 'show', array('user_id' => $user['id'])) ?>
+                    <?= $this->url->link('#'.$user['id'], 'UserViewController', 'show', array('user_id' => $user['id'])) ?>
                 </td>
                 <td>
-                    <?= $this->url->link($this->e($user['username']), 'user', 'show', array('user_id' => $user['id'])) ?>
+                    <?= $this->url->link($this->text->e($user['username']), 'UserViewController', 'show', array('user_id' => $user['id'])) ?>
                 </td>
                 <td>
-                    <?= $this->e($user['name']) ?>
+                    <?= $this->text->e($user['name']) ?>
                 </td>
                 <td>
-                    <a href="mailto:<?= $this->e($user['email']) ?>"><?= $this->e($user['email']) ?></a>
+                    <a href="mailto:<?= $this->text->e($user['email']) ?>"><?= $this->text->e($user['email']) ?></a>
                 </td>
                 <td>
-                    <?= $this->url->link(t('Remove this user'), 'group', 'dissociate', array('group_id' => $group['id'], 'user_id' => $user['id'])) ?>
+                    <i class="fa fa-times fa-fw" aria-hidden="true"></i>
+                    <?= $this->url->link(t('Remove this user'), 'GroupListController', 'dissociate', array('group_id' => $group['id'], 'user_id' => $user['id']), false, 'popover') ?>
                 </td>
             </tr>
             <?php endforeach ?>

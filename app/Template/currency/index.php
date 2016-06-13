@@ -12,7 +12,7 @@
     <?php foreach ($rates as $rate): ?>
     <tr>
         <td>
-            <strong><?= $this->e($rate['currency']) ?></strong>
+            <strong><?= $this->text->e($rate['currency']) ?></strong>
         </td>
         <td>
             <?= n($rate['rate']) ?>
@@ -24,7 +24,7 @@
 <hr/>
 <h3><?= t('Change reference currency') ?></h3>
 <?php endif ?>
-<form method="post" action="<?= $this->url->href('currency', 'reference') ?>" autocomplete="off">
+<form method="post" action="<?= $this->url->href('CurrencyController', 'reference') ?>" autocomplete="off">
 
     <?= $this->form->csrf() ?>
 
@@ -32,13 +32,13 @@
     <?= $this->form->select('application_currency', $currencies, $config_values, $errors) ?>
 
     <div class="form-actions">
-        <input type="submit" value="<?= t('Save') ?>" class="btn btn-blue">
+        <button type="submit" class="btn btn-blue"><?= t('Save') ?></button>
     </div>
 </form>
 
 <hr/>
 <h3><?= t('Add a new currency rate') ?></h3>
-<form method="post" action="<?= $this->url->href('currency', 'create') ?>" autocomplete="off">
+<form method="post" action="<?= $this->url->href('CurrencyController', 'create') ?>" autocomplete="off">
 
     <?= $this->form->csrf() ?>
 
@@ -49,6 +49,6 @@
     <?= $this->form->text('rate', $values, $errors, array(), 'form-numeric') ?>
 
     <div class="form-actions">
-        <input type="submit" value="<?= t('Save') ?>" class="btn btn-blue">
+        <button type="submit" class="btn btn-blue"><?= t('Save') ?></button>
     </div>
 </form>

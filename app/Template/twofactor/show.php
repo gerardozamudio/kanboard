@@ -5,7 +5,7 @@
 <?php if (! empty($secret) || ! empty($qrcode_url) || ! empty($key_url)): ?>
 <div class="listing">
     <?php if (! empty($secret)): ?>
-        <p><?= t('Secret key: ') ?><strong><?= $this->e($secret) ?></strong></p>
+        <p><?= t('Secret key: ') ?><strong><?= $this->text->e($secret) ?></strong></p>
     <?php endif ?>
 
     <?php if (! empty($qrcode_url)): ?>
@@ -13,19 +13,19 @@
     <?php endif ?>
 
     <?php if (! empty($key_url)): ?>
-        <p><?= t('This QR code contains the key URI: ') ?><a href="<?= $this->e($key_url) ?>"><?= $this->e($key_url) ?></a></p>
+        <p><?= t('This QR code contains the key URI: ') ?><a href="<?= $this->text->e($key_url) ?>"><?= $this->text->e($key_url) ?></a></p>
     <?php endif ?>
 </div>
 <?php endif ?>
 
 <h3><?= t('Test your device') ?></h3>
-<form method="post" action="<?= $this->url->href('twofactor', 'test', array('user_id' => $user['id'])) ?>" autocomplete="off">
+<form method="post" action="<?= $this->url->href('TwoFactorController', 'test', array('user_id' => $user['id'])) ?>" autocomplete="off">
 
     <?= $this->form->csrf() ?>
     <?= $this->form->label(t('Code'), 'code') ?>
     <?= $this->form->text('code', array(), array(), array('placeholder="123456"', 'autofocus'), 'form-numeric') ?>
 
     <div class="form-actions">
-        <input type="submit" value="<?= t('Check my code') ?>" class="btn btn-blue">
+        <button type="submit" class="btn btn-blue"><?= t('Check my code') ?></button>
     </div>
 </form>
